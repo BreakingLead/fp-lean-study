@@ -1,0 +1,10 @@
+name = "fp-lean-study"
+version = "0.1.0"
+defaultTargets = ["fp-lean-study"]
+
+[[lean_lib]]
+name = "FpLeanStudy"
+
+[[lean_exe]]
+name = "fp-lean-study"
+root = "Main"
