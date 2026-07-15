@@ -20,6 +20,10 @@ instance : MyMonoid Nat where
 
 #eval String.intercalate " - " ["a", "b", "c"]
 
+inductive BinTree (α : Type) where
+  | leaf : BinTree α
+  | branch : BinTree α -> α -> BinTree α -> BinTree α
+
 
 def andThen (opt: Option α) (next: α → Option β) : (Option β) :=
   match opt with
@@ -107,9 +111,6 @@ def sumAndFindEvens2 : List Int → WithLog Int Int
 
 #eval sumAndFindEvens2 [1,2,3,4,5,6,7,8,9]
 
-inductive BinTree (α : Type) where
-  | leaf : BinTree α
-  | branch : BinTree α -> α -> BinTree α -> BinTree α
 
 -- 遍历并求和
 def inorderSum : BinTree Int → WithLog Int Int
@@ -125,3 +126,34 @@ def t1: BinTree Int := BinTree.branch (BinTree.branch BinTree.leaf 1 BinTree.lea
 #eval inorderSum t1
 
 end LogMonad
+
+
+-- 下面是 state monad
+
+open BinTree in
+def aTree :=
+  branch
+    (branch
+       (branch leaf "a" (branch leaf "b" leaf))
+       "c"
+       leaf)
+    "d"
+    (branch leaf "e" leaf)
+
+-- 中序遍历树，打上被访问的次序
+open BinTree in
+def number (t : BinTree α) : BinTree (Nat × α) :=
+  let rec go (num : Nat) : BinTree α → (Nat × BinTree (Nat × α))
+    | leaf => (num, leaf)
+    | branch l x r =>
+      let (num1, new_left) := go num l
+      let new_val := (num1, x)
+      let (num2, new_right) := go (num1 + 1) r
+      (num2, branch new_left new_val new_right)
+
+  (go 0 t).snd
+
+#eval number aTree
+
+def State (σ : Type) (α : Type) : Type :=
+  σ → (σ × α)
